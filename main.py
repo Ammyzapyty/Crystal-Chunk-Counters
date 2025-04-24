@@ -80,11 +80,11 @@ async def on_ready():
 
     asyncio.create_task(scheduled_task())
 
-    channel_id = 1312781504400588883 # 🔁 ใส่ Channel ID ที่ต้องการให้บอทส่งข้อความ
-    channel = bot.get_channel(channel_id)
-    if channel:
-        await channel.send("I love Ammy she is the best creators")
-    asyncio.create_task(scheduled_task())
+    #channel_id = 1312781504400588883 # 🔁 ใส่ Channel ID ที่ต้องการให้บอทส่งข้อความ
+    #channel = bot.get_channel(channel_id)
+    #if channel:
+    #    await channel.send("I love Ammy she is the best creators")
+    #asyncio.create_task(scheduled_task())
 
 
 
