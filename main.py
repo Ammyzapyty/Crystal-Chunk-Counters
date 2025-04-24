@@ -80,11 +80,11 @@ async def on_ready():
 
     asyncio.create_task(scheduled_task())
 
-    #channel_id = 1312781504400588883 # 🔁 ใส่ Channel ID ที่ต้องการให้บอทส่งข้อความ
-    #channel = bot.get_channel(channel_id)
-    #if channel:
-    #    await channel.send("Julia Ekae ╭∩╮( •̀_•́ )╭∩╮")
-    #asyncio.create_task(scheduled_task())
+    channel_id = 1312781504400588883 # 🔁 ใส่ Channel ID ที่ต้องการให้บอทส่งข้อความ
+    channel = bot.get_channel(channel_id)
+    if channel:
+        await channel.send("I love Ammy she is the best creators")
+    asyncio.create_task(scheduled_task())
 
 
 
@@ -125,7 +125,7 @@ async def on_message(message):
                                                   f"I cherish you naa!! ₍ᐢ. .ᐢ₎ ₊˚⊹♡"]))
         return
     
-    if any(keyword in content for keyword in ["crystie chu contente"]) :
+    if any(keyword in content for keyword in ["crystie chu contente","crystie chu"]) :
         await message.channel.send(random.choice([f"Are you calling me ?? (≧∀≦)ゞ\nCrystie Chu Contente, that's my name! ∘ ∘ ∘ ( °ヮ° ) ? {message.author.mention}",
                                    f"Yes! I'm here! You need help? ᕙ(  •̀ ᗜ •́  )ᕗ",
                                    f"The coolest Bot in this server is here!!\nLet me know if there's anything I can do. ᓚ₍ ^. .^₎"]))
