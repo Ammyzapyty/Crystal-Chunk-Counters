@@ -5,7 +5,7 @@ from datetime import datetime
 import pytz
 import asyncio
 from datetime import datetime, timedelta
-
+import random
 from myserver import server_on
 
 
@@ -15,29 +15,64 @@ intents.message_content = True
 bot = commands.Bot(command_prefix='!', intents=intents)
 
 # Global data storage
+last_world = None
 start_data = {}
 start_time = None
 finish_time = None
+special_mentions = {
+    "21/02": 1267811966769041451, # tori
+    "01/03": 1249685648789606462, # yuki
+    "19/03": 1007576032762658888,  # Nutcha
+    "23/03": 759408411132952587, #Ammy
+    "17/08": 505280516266786819, #Mui
+    "27/08": 1172547640840429690, # Julia
+    "18/11": 1247535447576547382 # kemomimi
+}
+
+birthday_message = "🎉 Happy Birthday!!ヾ( ˃ᴗ˂ )◞ • *✰🎂🎈"
+
+
+
+# /////////////////////////////////////////////////////////////////////////////////////////
+# ส่งทุกวันเวลา เที่ยงคืน 10นาที ญี่ปุ่น
 
 async def scheduled_task():
     await bot.wait_until_ready()
-    channel_id = 1329786018353778760  # 🔁 ใส่ Channel ID ที่ต้องการให้บอทส่งข้อความ
+    channel_id = 1329786018353778760  # 🔁 Channel ที่บอทจะส่งข้อความ
     channel = bot.get_channel(channel_id)
 
     while not bot.is_closed():
         now = datetime.now(pytz.timezone("Asia/Tokyo"))
-        target = now.replace(hour=00, minute=10, second=0, microsecond=0)
+        target = now.replace(hour=0, minute=10, second=0, microsecond=0)
 
-        # ถ้าเวลาตอนนี้เกินเป้าหมายแล้ว ให้เลื่อนไปวันถัดไป
         if now > target:
             target += timedelta(days=1)
 
-        # รอจนกว่าจะถึงเวลาเป้าหมาย
         wait_seconds = (target - now).total_seconds()
         await asyncio.sleep(wait_seconds)
 
         if channel:
+            # รายวัน
             await channel.send("日本人 Are you 眠い？？ ᶻ 𝗓 𐰁")
+
+            # วันพิเศษแบบเปลี่ยนคน แต่ข้อความเดิม
+            today = target.strftime("%d/%m")
+            if today in special_mentions:
+                mention_id = special_mentions[today]
+                mention_text = ""
+
+                try:
+                    user = await bot.fetch_user(mention_id)
+                    mention_text = f"{user.mention} "
+                except:
+                    pass  # ไม่เจอ user ก็ไม่แท็ก
+
+                await channel.send(f"{mention_text}{birthday_message}")
+
+
+
+# /////////////////////////////////////////////////////////////////////////////////////////
+# แจ้งเตือนบอทออนไลน์ terminal
 
 @bot.event
 async def on_ready():
@@ -45,11 +80,16 @@ async def on_ready():
 
     asyncio.create_task(scheduled_task())
 
-    #channel_id = 1329786018353778760  # 🔁 ใส่ Channel ID ที่ต้องการให้บอทส่งข้อความ
+    #channel_id = 1312781504400588883 # 🔁 ใส่ Channel ID ที่ต้องการให้บอทส่งข้อความ
     #channel = bot.get_channel(channel_id)
     #if channel:
-    #    await channel.send("ระวังตื่นสายเด้อ")
+    #    await channel.send("Julia Ekae ╭∩╮( •̀_•́ )╭∩╮")
     #asyncio.create_task(scheduled_task())
+
+
+
+# /////////////////////////////////////////////////////////////////////////////////////////
+# ตอบกลับข้อความตามคำที่มี
 
 @bot.event
 async def on_message(message):
@@ -64,12 +104,15 @@ async def on_message(message):
         return
 
     # ✅ ตอบ xxxx ถ้ามีคำว่า zzzzz หรือคำใกล้เคียง
-    if any(keyword in content for keyword in ["good night", "おやすみ", "gn", "oyasumi" , 'นอน']):
-        await message.channel.send(f"sweet dreams~ 😴😴 {message.author.mention}")
+    if any(keyword in content for keyword in ["good night", "おやすみ", "gn", "oyasumi", 'นอน', 'nemui', 'sleep', '眠い', 'ねむい']):
+        await message.channel.send(random.choice([f"sweet dreams~ 😴😴 {message.author.mention}"
+                                                  ,"Good night (⸝⸝ᴗ﹏ᴗ⸝⸝) ᶻ 𝗓 𐰁"
+                                                  ,"see you tomorrowwww"]))
         return
     
-    if any(keyword in content for keyword in ["ohayou", "おはよう", "good morning"]):
-        await message.channel.send(f"Good morning (❁´◡`❁) 😃🌞 {message.author.mention}")
+    if any(keyword in content for keyword in ["ohayou", "おはよう", "morning"]):
+        await message.channel.send(random.choice([f"Good morning (❁´◡`❁) 😃🌞 {message.author.mention}",
+                                   f"Ohayouuuu 🌻☀️🐝"]))
         return
     
     if any(keyword in content for keyword in ["he is"]):
@@ -77,17 +120,51 @@ async def on_message(message):
         return
     
     if any(keyword in content for keyword in ["love",'♡']):
-        await message.channel.send(f"I love you (´▽`ʃ♡ƪ) {message.author.mention}")
+        await message.channel.send(random.choice([f"I love youuuuu (´▽`ʃ♡ƪ) {message.author.mention}",
+                                                  f"I love you no matter what {message.author.mention} (ෆ˙ᵕ˙ෆ)♡",
+                                                  f"I cherish you naa!! ₍ᐢ. .ᐢ₎ ₊˚⊹♡"]))
         return
     
     if any(keyword in content for keyword in ["crystie chu contente"]) :
-        await message.channel.send(f"Are you calling me ?? (≧∀≦)ゞ\nCrystie Chu Contente, that's my name! ∘ ∘ ∘ ( °ヮ° ) ? {message.author.mention}")
+        await message.channel.send(random.choice([f"Are you calling me ?? (≧∀≦)ゞ\nCrystie Chu Contente, that's my name! ∘ ∘ ∘ ( °ヮ° ) ? {message.author.mention}",
+                                   f"Yes! I'm here! You need help? ᕙ(  •̀ ᗜ •́  )ᕗ",
+                                   f"The coolest Bot in this server is here!!\nLet me know if there's anything I can do. ᓚ₍ ^. .^₎"]))
         return
     
     if any(keyword in content for keyword in ["kak",'noob','heta','กาก']):
-        await message.channel.send(f"No!! Mui kak trust me ദ്ദി(˵ •̀ ᴗ - ˵ ) ✧ \n Ammy tell me this")
+        await message.channel.send(random.choice([f"No!! Mui kak trust me ദ്ദി(˵ •̀ ᴗ - ˵ ) ✧ \n Ammy tell me this",
+                                                  f"Who noob !?!?!( ˶°ㅁ°) !!"]))
         return
 
+    if any(keyword in content for keyword in ["are you all ,all right ?",'are u all right','are you all all right']):
+        await message.channel.send(f"No!! We are ALL ,ALL LEFT ദ്ദി(ᵔᗜᵔ)")
+        return
+    
+    if any(keyword in content for keyword in ["today whos world","today who's world",'today who world']):
+        if last_world:
+            await message.channel.send(f"🌍 Last time, it was {last_world} ✨")
+        else:
+            await message.channel.send("🤔 I don't know yet... maybe Havuika's world?? Σ(°△°   )")
+        return
+
+    if any(keyword in content for keyword in ["ekae"]):
+        user_ids = [1172547640840429690, #julia 1
+                    663541892201578507, #julia 2
+                    759408411132952587, #Ammy
+                    1166748170823413791, #Achi
+                    ]
+        chosen_user = await bot.fetch_user(random.choice(user_ids))
+
+        await message.channel.send(random.choice([
+            f"WHAT THE HELL {message.author.mention}",
+            f"No!!! I think {chosen_user.mention} is EKae"
+        ]))
+        return
+
+    
+    if any(keyword in content for keyword in ["waiting"]):
+        await message.channel.send(f"No need to hurry naa (˶ᵔ ᵕ ᵔ˶)")
+        return
 
     # ✅ รองรับหลายคำสั่งในข้อความเดียว
     lines = message.content.strip().split('\n')
@@ -136,8 +213,9 @@ async def reset(ctx, name: str = None):
         await ctx.send("🧼 Reset everyone Data")
 
 @bot.command()
-async def summary(ctx):
-    global start_data, start_time, finish_time
+async def summary(ctx, name: str = None):
+    global start_data, start_time, finish_time, last_world
+
     if not start_time or not finish_time or all(data['result'] is None for data in start_data.values()):
         await ctx.send("❌ Not enough data to summarize. Make sure to use !start and !finish first.")
         return
@@ -156,19 +234,27 @@ async def summary(ctx):
 
     rankings = "\n".join([f"{i+1}# {name} ({result})" for i, (name, result) in enumerate(sorted_results)])
 
+    # กำหนดชื่อโลกใน title
+    if name:
+        last_world = f"{name}'s world"
+    else:
+        last_world = None
+
+    title_suffix = f" ({last_world})" if last_world else ""
     embed = discord.Embed(
-        title="📊 Summary of today!",
-        color=discord.Color.gold()
+        title=f"📊 Summary of today!{title_suffix}",
+        color=discord.Color.blue()
     )
     embed.add_field(name="📅 Date", value=date_str, inline=False)
     embed.add_field(name="🕒 Start", value=start_str, inline=True)
     embed.add_field(name="🕓 Finish", value=finish_str, inline=True)
     embed.add_field(name="⏱️ Total time spent", value=total_duration, inline=False)
     embed.add_field(name="🏆 The winner of today is", value=rankings or "No one finished yet!", inline=False)
+    embed.set_image(url="https://i.redd.it/give-me-your-best-genshin-memes-and-you-get-mine-v0-8opqa6xdc78e1.gif?width=749&auto=webp&s=346e147410646fd9b46adfb2be03d3bc0912ea8c")
 
     await ctx.send(embed=embed)
 
-    # Reset all data after summary
+    # ล้างข้อมูลหลังสรุป
     start_data.clear()
     start_time = None
     finish_time = None
