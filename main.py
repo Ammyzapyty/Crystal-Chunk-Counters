@@ -99,12 +99,12 @@ async def on_message(message):
     content = message.content.lower()
 
     # ✅ ตอบ hi เมื่อพิมพ์ hello
-    if content == "hello":
+    if any(keyword in content for keyword in ["hello","hi"]):
         await message.channel.send(f"Hello {message.author.mention} Ekae")
         return
 
     # ✅ ตอบ xxxx ถ้ามีคำว่า zzzzz หรือคำใกล้เคียง
-    if any(keyword in content for keyword in ["good night", "おやすみ", "gn", "oyasumi", 'นอน', 'nemui', 'sleep', '眠い', 'ねむい']):
+    if any(keyword in content for keyword in ["good night", "おやすみ", "gn", "oyasumi", 'นอน', 'nemui', 'sleep', '眠い', 'ねむい',"bye"]):
         await message.channel.send(random.choice([f"sweet dreams~ 😴😴 {message.author.mention}"
                                                   ,"Good night (⸝⸝ᴗ﹏ᴗ⸝⸝) ᶻ 𝗓 𐰁"
                                                   ,"see you tomorrowwww"]))
