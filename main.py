@@ -38,7 +38,7 @@ birthday_message = "🎉 Happy Birthday!!ヾ( ˃ᴗ˂ )◞ • *✰🎂🎈"
 
 async def scheduled_task():
     await bot.wait_until_ready()
-    channel_id = 1329786018353778760  # 🔁 Channel ที่บอทจะส่งข้อความ
+    channel_id = 1312781504400588883  # 🔁 Channel ที่บอทจะส่งข้อความ
     channel = bot.get_channel(channel_id)
 
     while not bot.is_closed():
