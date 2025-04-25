@@ -12,7 +12,7 @@ from myserver import server_on
 # Setup intents and bot
 intents = discord.Intents.default()
 intents.message_content = True
-bot = commands.Bot(command_prefix='!', intents=intents)
+bot = commands.Bot(command_prefix='!', intents=intents, help_command=None)
 
 # Global data storage
 last_world = None
@@ -38,7 +38,7 @@ birthday_message = "🎉 Happy Birthday!!ヾ( ˃ᴗ˂ )◞ • *✰🎂🎈"
 
 async def scheduled_task():
     await bot.wait_until_ready()
-    channel_id = 1312781504400588883  # 🔁 Channel ที่บอทจะส่งข้อความ
+    channel_id = 1329786018353778760  # 🔁 Channel ที่บอทจะส่งข้อความ
     channel = bot.get_channel(channel_id)
 
     while not bot.is_closed():
@@ -80,10 +80,10 @@ async def on_ready():
 
     asyncio.create_task(scheduled_task())
 
-    #channel_id = 1312781504400588883 # 🔁 ใส่ Channel ID ที่ต้องการให้บอทส่งข้อความ
+    #channel_id = 1329786018353778760 # 🔁 ใส่ Channel ID ที่ต้องการให้บอทส่งข้อความ
     #channel = bot.get_channel(channel_id)
     #if channel:
-    #    await channel.send("I love Ammy she is the best creators")
+    #    await channel.send("test")
     #asyncio.create_task(scheduled_task())
 
 
@@ -125,7 +125,7 @@ async def on_message(message):
                                                   f"I cherish you naa!! ₍ᐢ. .ᐢ₎ ₊˚⊹♡"]))
         return
     
-    if any(keyword in content for keyword in ["crystie chu contente","crystie chu"]) :
+    if any(keyword in content for keyword in ["crystie chu contente"]) :
         await message.channel.send(random.choice([f"Are you calling me ?? (≧∀≦)ゞ\nCrystie Chu Contente, that's my name! ∘ ∘ ∘ ( °ヮ° ) ? {message.author.mention}",
                                    f"Yes! I'm here! You need help? ᕙ(  •̀ ᗜ •́  )ᕗ",
                                    f"The coolest Bot in this server is here!!\nLet me know if there's anything I can do. ᓚ₍ ^. .^₎"]))
@@ -169,9 +169,10 @@ async def on_message(message):
     # ✅ รองรับหลายคำสั่งในข้อความเดียว
     lines = message.content.strip().split('\n')
     for line in lines:
-        message.content = line.strip()
-        await bot.process_commands(message)
-
+        if line.strip():
+            fake_message = message
+            fake_message.content = line.strip()
+            await bot.process_commands(fake_message)
 
 
 # /////////////////////////////////////////////////////////////////////////////////////////
@@ -211,6 +212,42 @@ async def reset(ctx, name: str = None):
         start_time = None
         finish_time = None
         await ctx.send("🧼 Reset everyone Data")
+
+@bot.command()
+async def help(ctx):
+    hembed = discord.Embed(
+        title="📚 How My Commands Work",
+        description="Here's a quick guide to using my commands!",
+        color=discord.Color.blue()
+    )
+    
+    hembed.add_field(
+        name="🛠️ `!start`",
+        value="Enter your name and the number of crystals before mining.\n➔ Example: `!start name 0`",
+        inline=False
+    )
+    hembed.add_field(
+        name="⛏️ `!finish`",
+        value="Enter your name and the number of crystals after mining.\n➔ Example: `!finish name 0`",
+        inline=False
+    )
+    hembed.add_field(
+        name="♻️ `!reset`",
+        value="Reset input data.\n➔ Example: `!reset` (reset all users) | `!reset name` (reset specific user)",
+        inline=False
+    )
+    hembed.add_field(
+        name="📄 `!summary`",
+        value="Enter the name of the world owner you mined with.\n➔ Example: `!summary name`",
+        inline=False
+    )
+
+    hembed.set_thumbnail(url="https://media.tenor.com/kYVuwpAqbfUAAAAM/genshin-impact-furina.gif")
+    hembed.set_image(url="https://upload-os-bbs.hoyolab.com/upload/2024/01/07/304153211/babd6d552ea0572ae90483188c4f6a7e_8170120446407218376.gif")
+    hembed.set_footer(text="Happy mining! 🚀")
+
+    await ctx.send(embed=hembed)
+
 
 @bot.command()
 async def summary(ctx, name: str = None):
