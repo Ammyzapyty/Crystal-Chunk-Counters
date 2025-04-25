@@ -169,10 +169,8 @@ async def on_message(message):
     # ✅ รองรับหลายคำสั่งในข้อความเดียว
     lines = message.content.strip().split('\n')
     for line in lines:
-        if line.strip():
-            fake_message = message
-            fake_message.content = line.strip()
-            await bot.process_commands(fake_message)
+        message.content = line.strip()
+        await bot.process_commands(message)
 
 
 # /////////////////////////////////////////////////////////////////////////////////////////
