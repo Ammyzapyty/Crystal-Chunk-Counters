@@ -89,91 +89,6 @@ async def on_ready():
 
 
 # /////////////////////////////////////////////////////////////////////////////////////////
-# ตอบกลับข้อความตามคำที่มี
-
-@bot.event
-async def on_message(message):
-    if message.author == bot.user:
-        return
-
-    content = message.content.lower()
-
-    # ✅ ตอบ hi เมื่อพิมพ์ hello
-    if any(keyword in content for keyword in ["hello","hi"]):
-        await message.channel.send(f"Hello {message.author.mention} Ekae")
-        return
-
-    # ✅ ตอบ xxxx ถ้ามีคำว่า zzzzz หรือคำใกล้เคียง
-    if any(keyword in content for keyword in ["good night", "おやすみ", "gn", "oyasumi", 'นอน', 'nemui', 'sleep', '眠い', 'ねむい',"bye"]):
-        await message.channel.send(random.choice([f"sweet dreams~ 😴😴 {message.author.mention}"
-                                                  ,"Good night (⸝⸝ᴗ﹏ᴗ⸝⸝) ᶻ 𝗓 𐰁"
-                                                  ,"see you tomorrowwww"]))
-        return
-    
-    if any(keyword in content for keyword in ["ohayou", "おはよう", "morning"]):
-        await message.channel.send(random.choice([f"Good morning (❁´◡`❁) 😃🌞 {message.author.mention}",
-                                   f"Ohayouuuu 🌻☀️🐝"]))
-        return
-    
-    if any(keyword in content for keyword in ["he is"]):
-        await message.channel.send(f"He is the fastest cashier I know 🏃🏻‍♂️🏃🏻‍♂️")
-        return
-    
-    if any(keyword in content for keyword in ["love",'♡']):
-        await message.channel.send(random.choice([f"I love youuuuu (´▽`ʃ♡ƪ) {message.author.mention}",
-                                                  f"I love you no matter what {message.author.mention} (ෆ˙ᵕ˙ෆ)♡",
-                                                  f"I cherish you naa!! ₍ᐢ. .ᐢ₎ ₊˚⊹♡"]))
-        return
-    
-    if any(keyword in content for keyword in ["crystie chu contente"]) :
-        await message.channel.send(random.choice([f"Are you calling me ?? (≧∀≦)ゞ\nCrystie Chu Contente, that's my name! ∘ ∘ ∘ ( °ヮ° ) ? {message.author.mention}",
-                                   f"Yes! I'm here! You need help? ᕙ(  •̀ ᗜ •́  )ᕗ",
-                                   f"The coolest Bot in this server is here!!\nLet me know if there's anything I can do. ᓚ₍ ^. .^₎"]))
-        return
-    
-    if any(keyword in content for keyword in ["kak",'noob','heta','กาก']):
-        await message.channel.send(random.choice([f"No!! Mui kak trust me ദ്ദി(˵ •̀ ᴗ - ˵ ) ✧ \n Ammy tell me this",
-                                                  f"Who noob !?!?!( ˶°ㅁ°) !!"]))
-        return
-
-    if any(keyword in content for keyword in ["are you all ,all right ?",'are u all right','are you all all right']):
-        await message.channel.send(f"No!! We are ALL ,ALL LEFT ദ്ദി(ᵔᗜᵔ)")
-        return
-    
-    if any(keyword in content for keyword in ["today whos world","today who's world",'today who world']):
-        if last_world:
-            await message.channel.send(f"🌍 Last time, it was {last_world} ✨")
-        else:
-            await message.channel.send("🤔 I don't know yet... maybe Havuika's world?? Σ(°△°   )")
-        return
-
-    if any(keyword in content for keyword in ["ekae"]):
-        user_ids = [1172547640840429690, #julia 1
-                    663541892201578507, #julia 2
-                    759408411132952587, #Ammy
-                    1166748170823413791, #Achi
-                    ]
-        chosen_user = await bot.fetch_user(random.choice(user_ids))
-
-        await message.channel.send(random.choice([
-            f"WHAT THE HELL {message.author.mention}",
-            f"No!!! I think {chosen_user.mention} is EKae"
-        ]))
-        return
-
-    
-    if any(keyword in content for keyword in ["waiting"]):
-        await message.channel.send(f"No need to hurry naa (˶ᵔ ᵕ ᵔ˶)")
-        return
-
-    # ✅ รองรับหลายคำสั่งในข้อความเดียว
-    lines = message.content.strip().split('\n')
-    for line in lines:
-        message.content = line.strip()
-        await bot.process_commands(message)
-
-
-# /////////////////////////////////////////////////////////////////////////////////////////
 # Command
 
 @bot.command()
@@ -285,6 +200,7 @@ async def summary(ctx, name: str = None):
     embed.add_field(name="🕓 Finish", value=finish_str, inline=True)
     embed.add_field(name="⏱️ Total time spent", value=total_duration, inline=False)
     embed.add_field(name="🏆 The winner of today is", value=rankings or "No one finished yet!", inline=False)
+    embed.set_thumbnail(url='https://upload-os-bbs.hoyolab.com/upload/2024/05/04/37093677/e141a50c00a93db971c6f3ea8452cd30_7882568107366365724.gif')
     embed.set_image(url="https://i.redd.it/give-me-your-best-genshin-memes-and-you-get-mine-v0-8opqa6xdc78e1.gif?width=749&auto=webp&s=346e147410646fd9b46adfb2be03d3bc0912ea8c")
 
     await ctx.send(embed=embed)
@@ -293,6 +209,94 @@ async def summary(ctx, name: str = None):
     start_data.clear()
     start_time = None
     finish_time = None
+
+
+
+# /////////////////////////////////////////////////////////////////////////////////////////
+# ตอบกลับข้อความตามคำที่มี
+
+@bot.event
+async def on_message(message):
+    if message.author == bot.user:
+        return
+
+    content = message.content.lower()
+
+    # ✅ ตอบ hi เมื่อพิมพ์ hello
+    if content == "hello":
+        await message.channel.send(f"Hello {message.author.mention} Ekae")
+        return
+
+    # ✅ ตอบ xxxx ถ้ามีคำว่า zzzzz หรือคำใกล้เคียง
+    if any(keyword in content for keyword in ["good night", "おやすみ", "gn", "oyasumi", 'นอน', 'nemui', 'sleep', '眠い', 'ねむい']):
+        await message.channel.send(random.choice([f"sweet dreams~ 😴😴 {message.author.mention}"
+                                                  ,"Good night (⸝⸝ᴗ﹏ᴗ⸝⸝) ᶻ 𝗓 𐰁"
+                                                  ,"see you tomorrowwww"]))
+        return
+    
+    if any(keyword in content for keyword in ["ohayou", "おはよう", "morning"]):
+        await message.channel.send(random.choice([f"Good morning (❁´◡`❁) 😃🌞 {message.author.mention}",
+                                   f"Ohayouuuu 🌻☀️🐝"]))
+        return
+    
+    if any(keyword in content for keyword in ["he is"]):
+        await message.channel.send(f"He is the fastest cashier I know 🏃🏻‍♂️🏃🏻‍♂️")
+        return
+    
+    if any(keyword in content for keyword in ["love",'♡']):
+        await message.channel.send(random.choice([f"I love youuuuu (´▽`ʃ♡ƪ) {message.author.mention}",
+                                                  f"I love you no matter what {message.author.mention} (ෆ˙ᵕ˙ෆ)♡",
+                                                  f"I cherish you naa!! ₍ᐢ. .ᐢ₎ ₊˚⊹♡"]))
+        return
+    
+    if any(keyword in content for keyword in ["crystie chu contente"]) :
+        await message.channel.send(random.choice([f"Are you calling me ?? (≧∀≦)ゞ\nCrystie Chu Contente, that's my name! ∘ ∘ ∘ ( °ヮ° ) ? {message.author.mention}",
+                                   f"Yes! I'm here! You need help? ᕙ(  •̀ ᗜ •́  )ᕗ",
+                                   f"The coolest Bot in this server is here!!\nLet me know if there's anything I can do. ᓚ₍ ^. .^₎"]))
+        return
+    
+    if any(keyword in content for keyword in ["kak",'noob','heta','กาก']):
+        await message.channel.send(random.choice([f"No!! Mui kak trust me ദ്ദി(˵ •̀ ᴗ - ˵ ) ✧ \n Ammy tell me this",
+                                                  f"Who noob !?!?!( ˶°ㅁ°) !!"]))
+        return
+
+    if any(keyword in content for keyword in ["are you all ,all right ?",'are u all right','are you all all right']):
+        await message.channel.send(f"No!! We are ALL ,ALL LEFT ദ്ദി(ᵔᗜᵔ)")
+        return
+    
+    if any(keyword in content for keyword in ["today whos world","today who's world",'today who world']):
+        if last_world:
+            await message.channel.send(f"🌍 Last time, it was {last_world} ✨")
+        else:
+            await message.channel.send("🤔 I don't know yet... maybe Havuika's world?? Σ(°△°   )")
+        return
+
+    if any(keyword in content for keyword in ["ekae"]):
+        user_ids = [1172547640840429690, #julia 1
+                    663541892201578507, #julia 2
+                    759408411132952587, #Ammy
+                    1166748170823413791, #Achi
+                    ]
+        chosen_user = await bot.fetch_user(random.choice(user_ids))
+
+        await message.channel.send(random.choice([
+            f"WHAT THE HELL {message.author.mention}",
+            f"No!!! I think {chosen_user.mention} is EKae"
+        ]))
+        return
+
+    
+    if any(keyword in content for keyword in ["waiting"]):
+        await message.channel.send(f"No need to hurry naa (˶ᵔ ᵕ ᵔ˶)")
+        return
+
+    # ✅ รองรับหลายคำสั่งในข้อความเดียว
+    lines = message.content.strip().split('\n')
+    for line in lines:
+        if line.strip():
+            fake_message = message
+            fake_message.content = line.strip()
+            await bot.process_commands(fake_message)
 
 server_on()
 
