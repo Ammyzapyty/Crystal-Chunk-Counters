@@ -224,10 +224,10 @@ async def on_message(message):
         responses = [
             ["I'm here you n..need s..s..some help???", "https://i.redd.it/39eepulscwje1.gif"],
             ["Did you say something bad to me,right?", "https://i.redd.it/5e800xfmyy3d1.gif"],
-            ["Did you just call me!?!?!", "https://x.com/i/status/1928553089612570798"],
-            ["Nuh uh,I won't work for you.Do it yourself", "https://x.com/i/status/1926396734785122318"],
-            [".............y..Yes？", "https://x.com/i/status/1921686732082130949"],
-            ["Dude, why do you keep calling me wth?", "https://x.com/i/status/1912926988639089014"]
+            ["Helloooo", "https://tenor.com/th/view/robin-hsr-soundoriented-gif-9870274529634909477"],
+            ["Nuh uh,I won't work for you.Do it yourself", "https://tenor.com/th/view/miyabi-zenless-zone-zero-hoyoverse-nuh-uh-zzz-gif-13074252805747367964"],
+            [".............y..Yes？", "https://tenor.com/th/view/robin-robin-hsr-honkai-star-rail-soundoriented-hsr-gif-4453272942747169282"],
+            ["Dude, why do you keep calling me WTH", "https://tenor.com/th/view/robin-gif-4237673717353924905"],
         ]
         chosen = random.choice(responses)
         for line in chosen:
