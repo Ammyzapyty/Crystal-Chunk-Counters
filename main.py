@@ -96,10 +96,6 @@ async def test(ctx):
     await ctx.send(f"I'm working now na\n https://i.redd.it/39eepulscwje1.gif")
 
 @bot.command()
-async def test(ctx):
-    await ctx.send(f"I'm working now na")
-
-@bot.command()
 async def start(ctx, name: str, value: int):
     global start_time
     if start_time is None:
