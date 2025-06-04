@@ -215,15 +215,25 @@ async def summary(ctx, name: str = None):
 # /////////////////////////////////////////////////////////////////////////////////////////
 # ตอบกลับข้อความตามคำที่มี
 
+responses =["I'm here you n..need s..s..some help???","https://i.redd.it/39eepulscwje1.gif"],
+        ["Did you say something bad to me,right?","https://i.redd.it/5e800xfmyy3d1.gif"],
+        ["Did you just call me!?!?!","https://x.com/i/status/1928553089612570798"],
+        ["Nuh uh,I won't work for you.Do it yourself","https://x.com/i/status/1926396734785122318"],
+        [".............y..Yes？","https://x.com/i/status/1921686732082130949"],
+        ["Dude, why do you keep calling me wth?","https://x.com/i/status/1912926988639089014"]
+
 @bot.event
 async def on_message(message):
     if message.author == bot.user:
         return
 
-    if bot.user in message.mentions:
-        await message.channel.send("I'm here you n..need s..s..some help???")
-        await message.channel.send("https://i.redd.it/39eepulscwje1.gif")
+        if bot.user in message.mentions:
+        chosen_response = random.choice(responses)
+        for msg in chosen_response:
+            await message.channel.send(msg)
         return
+    await bot.process_commands(message)
+
 
     content = message.content.lower()
 
