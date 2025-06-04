@@ -224,10 +224,10 @@ async def on_message(message):
         responses = [
             ["I'm here you n..need s..s..some help???", "https://i.redd.it/39eepulscwje1.gif"],
             ["Did you say something bad to me,right?", "https://i.redd.it/5e800xfmyy3d1.gif"],
-            ["Helloooo", "https://tenor.com/th/view/robin-hsr-soundoriented-gif-9870274529634909477"],
-            ["Nuh uh,I won't work for you.Do it yourself", "https://tenor.com/th/view/miyabi-zenless-zone-zero-hoyoverse-nuh-uh-zzz-gif-13074252805747367964"],
-            [".............y..Yes？", "https://tenor.com/th/view/robin-robin-hsr-honkai-star-rail-soundoriented-hsr-gif-4453272942747169282"],
-            ["Dude, why do you keep calling me WTH", "https://tenor.com/th/view/robin-gif-4237673717353924905"],
+            ["Helloooo", "https://media1.tenor.com/m/iPpCY8Z5fSUAAAAd/robin-hsr-soundoriented.gif"],
+            ["Nuh uh,I won't work for you.Do it yourself", "https://media1.tenor.com/m/tXETqA454BwAAAAd/miyabi-zenless-zone-zero.gif"],
+            ["zzzzzzzzz.............y..Yes？", "https://media1.tenor.com/m/Pc00JaBNsgIAAAAd/robin-robin-hsr.gif"],
+            ["Dude, why do you keep calling me WTH", "https://media1.tenor.com/m/Os89yzTjySkAAAAd/robin.gif"],
         ]
         chosen = random.choice(responses)
         for line in chosen:
