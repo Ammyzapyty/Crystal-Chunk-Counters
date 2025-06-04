@@ -93,7 +93,9 @@ async def on_ready():
 
 @bot.command()
 async def test(ctx):
-    await ctx.send(f"I'm working now na\n https://i.redd.it/39eepulscwje1.gif")
+    await message.channel.send(
+    content="I'm working now na, Don't blame me naaa",
+    message.channel.send(https://i.redd.it/39eepulscwje1.gif)
 
 @bot.command()
 async def start(ctx, name: str, value: int):
@@ -309,11 +311,11 @@ async def on_message(message):
     lines = message.content.strip().split('\n')
     for line in lines:
         if line.strip():
+            fake_message = discord.Message  # สร้างข้อความใหม่
             fake_message = message
             fake_message.content = line.strip()
             await bot.process_commands(fake_message)
 
-    await bot.process_commands(message)
 server_on()
 
 # Run the bot
