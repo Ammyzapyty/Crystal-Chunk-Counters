@@ -92,12 +92,6 @@ async def on_ready():
 # Command
 
 @bot.command()
-async def test(ctx):
-    await message.channel.send(
-    content="I'm working now na, Don't blame me naaa",
-    message.channel.send(https://i.redd.it/39eepulscwje1.gif)
-
-@bot.command()
 async def start(ctx, name: str, value: int):
     global start_time
     if start_time is None:
@@ -224,6 +218,11 @@ async def summary(ctx, name: str = None):
 @bot.event
 async def on_message(message):
     if message.author == bot.user:
+        return
+
+    if bot.user in message.mentions:
+        await message.channel.send("I'm here you n..need s..s..some help???")
+        await message.channel.send("https://i.redd.it/39eepulscwje1.gif")
         return
 
     content = message.content.lower()
