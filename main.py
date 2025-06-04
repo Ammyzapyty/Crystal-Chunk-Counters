@@ -93,6 +93,10 @@ async def on_ready():
 
 @bot.command()
 async def test(ctx):
+    await ctx.send(f"I'm working now na\n https://i.redd.it/39eepulscwje1.gif")
+
+@bot.command()
+async def test(ctx):
     await ctx.send(f"I'm working now na")
 
 @bot.command()
@@ -312,6 +316,8 @@ async def on_message(message):
             fake_message = message
             fake_message.content = line.strip()
             await bot.process_commands(fake_message)
+
+    await bot.process_commands(message)
 server_on()
 
 # Run the bot
