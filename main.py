@@ -327,4 +327,4 @@ async def on_message(message):
 server_on()
 
 # Run the bot
-bot.run(os.getenv('TOKEN'))
+bot.run(os.getenv('TOKEN?'))
