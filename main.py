@@ -318,7 +318,7 @@ async def on_message(message):
             await message.channel.send(f"No need to hurry naa (˶ᵔ ᵕ ᵔ˶)")
         return
 
-    if any(keyword in content for keyword in ["no need to hurry naa"]) :
+    if any(keyword in content for keyword in ["no need to hurry na"]) :
         if not message.content.startswith('!'):
             await message.channel.send("HUH!?!?!?This you just mock me!?!?!?! <(ꐦㅍ _ㅍ)>")
             await message.channel.send("https://tenor.com/o0WqN4GKaoN.gif")
@@ -337,4 +337,5 @@ server_on()
 
 # Run the bot
 bot.run(os.getenv('TOKEN'))
+
 
