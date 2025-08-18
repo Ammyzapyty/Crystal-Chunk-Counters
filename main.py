@@ -228,6 +228,9 @@ async def on_message(message):
             ["Nuh uh,I won't work for you.Do it yourself", "https://tenor.com/c9WirOAoErq.gif"],
             ["zzzzzzzzz.............y..Yes？", "https://tenor.com/fs8ctDp8LUA.gif"],
             ["Dude, why do you keep calling me WTH", "https://tenor.com/fdcKMmQ3URF.gif"],
+            ["HAHAHAHA you so funny ...................I lie FAQ" , "https://tenor.com/jEOjEdt861v.gif"],
+            ["OHHHH ok k k  I understand (Don't understand)" , "https://tenor.com/qaChJnWwI1F.gif"],
+            ["AHSDAHSHDJASJDKASKJDASHJA LET ME SLEEPPPPPP" , "https://tenor.com/npMvn9ISgjO.gif"]
         ]
         chosen = random.choice(responses)
         for line in chosen:
@@ -315,6 +318,12 @@ async def on_message(message):
             await message.channel.send(f"No need to hurry naa (˶ᵔ ᵕ ᵔ˶)")
         return
 
+    if any(keyword in content for keyword in ["no need to hurry naa"]) :
+        if not message.content.startswith('!'):
+            await message.channel.send("HUH!?!?!?This you just mock me!?!?!?! <(ꐦㅍ _ㅍ)>")
+            await message.channel.send("https://tenor.com/o0WqN4GKaoN.gif")
+        return
+
     # ✅ รองรับหลายคำสั่งในข้อความเดียว
     lines = message.content.strip().split('\n')
     for line in lines:
@@ -328,3 +337,4 @@ server_on()
 
 # Run the bot
 bot.run(os.getenv('TOKEN'))
+
