@@ -31,10 +31,49 @@ special_mentions = {
 
 birthday_message = "🎉 Happy Birthday!!ヾ( ˃ᴗ˂ )◞ • *✰🎂🎈"
 
+# ช่องส่งงานเขียน
+WRITTING_CHANNEL_ID = 1361195575470719026  # 🔁 ใส่ Channel ID ของแชท writting
+
+# 3 คนที่ต้องส่งงานทุกวัน (ใช้เป็น user id จริง)
+WRITING_USERS = {
+    "Ammy": 759408411132952587,  # แทน a
+    "Julia": 1172547640840429690,  # แทน j
+    "Yuki": 1249685648789606462,  # แทน y
+}
+
+# เก็บวันที่ล่าสุดที่แต่ละคน "ส่งงานแล้ว" (ต่อวัน)
+last_submit_date = {}  # user_id -> datetime.date
+
 
 
 # /////////////////////////////////////////////////////////////////////////////////////////
 # ส่งทุกวันเวลา เที่ยงคืน 10นาที ญี่ปุ่น
+
+ANNIV_START_YEAR = 2024  # ปีเริ่มรู้จักกัน
+
+async def anniversary_task():
+    await bot.wait_until_ready()
+    channel_id = 1312781504400588883  # ช่องที่ต้องการให้ส่งข้อความ
+    channel = bot.get_channel(channel_id)
+
+    while not bot.is_closed():
+        now = datetime.now(pytz.timezone("Asia/Tokyo"))
+        # ส่งตอน 00:48
+        target = now.replace(hour=0, minute=48, second=0, microsecond=0)
+
+        if now > target:
+            target += timedelta(days=1)
+
+        wait_seconds = (target - now).total_seconds()
+        await asyncio.sleep(wait_seconds)
+
+        # เช็กเฉพาะวันที่ 26/11
+        if target.month == 11 and target.day == 26 and target.year >= ANNIV_START_YEAR:
+            years = target.year - ANNIV_START_YEAR
+            await channel.send(
+                f"Happy anniversary of the year we first met! It has been {years} years now ٩(ˊᗜˋ*)و ♡"
+                f"I hope we’ll continue to receive this message together for many more years to come. (≧ヮ≦) 💕"
+            )
 
 async def scheduled_task():
     await bot.wait_until_ready()
@@ -70,6 +109,55 @@ async def scheduled_task():
                 await channel.send(f"{mention_text}{birthday_message}")
 
 
+async def writing_reminder_task():
+    await bot.wait_until_ready()
+    channel = bot.get_channel(WRITTING_CHANNEL_ID)
+
+    if channel is None:
+        print("⚠️ ไม่เจอช่อง WRITTING_CHANNEL_ID ที่ตั้งไว้")
+    
+    while not bot.is_closed():
+        now = datetime.now(pytz.timezone("Asia/Tokyo"))
+        # ตั้งเวลาเช็กทุกวันตอน 23:55 (ปรับได้)
+        target = now.replace(hour=23, minute=55, second=0, microsecond=0)
+
+        if now > target:
+            target += timedelta(days=1)
+
+        wait_seconds = (target - now).total_seconds()
+        await asyncio.sleep(wait_seconds)
+
+        # ดึง channel อีกรอบ กันกรณีบอทเพิ่ง join/เปลี่ยนแชนแนล
+        channel = bot.get_channel(WRITTING_CHANNEL_ID)
+        if channel is None:
+            continue
+
+        today = target.date()
+
+        for key, user_id in WRITING_USERS.items():
+            last_date = last_submit_date.get(user_id)
+
+            # ยังไม่เคยมี record เลย → ถือว่าไม่ส่งวันนี้ แต่ยังไม่ด่าแรง ใช้ "ลืมส่งงานรึเปล่า"
+            if last_date is None:
+                await channel.send("Did you forget to do the writing? ∘ ∘ ∘ ( °ヮ° ) ?")
+                continue
+
+            days = (today - last_date).days
+
+            if days <= 0:
+                # ส่งงานแล้ววันนี้
+                continue
+            elif days == 1:
+                # ขาด 1 วัน
+                await channel.send("Did you forget to do the writing? ∘ ∘ ∘ ( °ヮ° ) ?")
+            elif days >= 2:
+                # ขาด 2 วันขึ้นไป → เมนชั่น + บอกจำนวนวัน
+                member = channel.guild.get_member(user_id) or await bot.fetch_user(user_id)
+                mention = member.mention if member else f"<@{user_id}>"
+                await channel.send(f"{mention} ou haven't submitted your work for {days} days! Be careful and watch out! Don't you dare forget ! ( ◺˰◿ )")
+
+
+
 
 # /////////////////////////////////////////////////////////////////////////////////////////
 # แจ้งเตือนบอทออนไลน์ terminal
@@ -78,7 +166,10 @@ async def scheduled_task():
 async def on_ready():
     print('Bot is online!! He ready to work now!')
 
-    asyncio.create_task(scheduled_task())
+    asyncio.create_task(scheduled_task())      # อันเดิม (00:10)
+    asyncio.create_task(anniversary_task())    # 🎉 อันใหม่ (00:48 เฉพาะ 26/11)
+    asyncio.create_task(writing_reminder_task())
+
 
     #channel_id = 1329786018353778760 # 🔁 ใส่ Channel ID ที่ต้องการให้บอทส่งข้อความ
     #channel = bot.get_channel(channel_id)
@@ -89,9 +180,8 @@ async def on_ready():
 
 
 # /////////////////////////////////////////////////////////////////////////////////////////
-# Command
-
 @bot.command()
+
 async def start(ctx, name: str, value: int):
     global start_time
     if start_time is None:
@@ -217,8 +307,41 @@ async def summary(ctx, name: str = None):
 
 @bot.event
 async def on_message(message):
-    if message.author == bot.user:
+    # เมสเสจจากบอท (รวมทั้งบอทอื่น) ไม่ต้องสนใจ
+    if message.author.bot:
         return
+
+    # ---- แก้จุดนี้: ถ้ามีคำสั่ง (ขึ้นต้นด้วย prefix) ให้ประมวลผลคำสั่งทั้งหมดแล้ว return ----
+    lines = [l.strip() for l in message.content.split('\n') if l.strip()]
+    has_command = any(l.startswith(bot.command_prefix) for l in lines)
+
+    if has_command:
+        # รองรับหลายคำสั่งในข้อความเดียว
+        for line in lines:
+            if line.startswith(bot.command_prefix):
+                fake_message = message
+                fake_message.content = line
+                await bot.process_commands(fake_message)
+        return
+    # ------------------------------------------------------------------------------
+
+        # 🔻🔻🔻 ส่วนใหม่: เช็กการส่งงานในแชท writting 🔻🔻🔻
+    if message.channel.id == WRITTING_CHANNEL_ID and message.author.id in WRITING_USERS.values():
+        # เช็กว่ามีรูปไหม
+        has_image = False
+        for att in message.attachments:
+            # บางที content_type อาจเป็น None เลยเผื่อเช็คจากชื่อไฟล์ด้วย
+            if (att.content_type and att.content_type.startswith("image/")) or \
+               att.filename.lower().endswith((".png", ".jpg", ".jpeg", ".gif", ".webp")):
+                has_image = True
+                break
+
+        if has_image:
+            now = datetime.now(pytz.timezone("Asia/Tokyo"))
+            last_submit_date[message.author.id] = now.date()
+            # จะ print log ไว้ดูก็ได้
+            print(f"[WRITING] {message.author} ส่งงานวันที่ {now.date()}")
+
 
     if bot.user in message.mentions:
         responses = [
@@ -337,5 +460,6 @@ server_on()
 
 # Run the bot
 bot.run(os.getenv('TOKEN'))
+
 
 
