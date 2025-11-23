@@ -119,7 +119,7 @@ async def writing_reminder_task():
     while not bot.is_closed():
         now = datetime.now(pytz.timezone("Asia/Tokyo"))
         # ตั้งเวลาเช็กทุกวันตอน 23:55 (ปรับได้)
-        target = now.replace(hour=1, minute=10, second=0, microsecond=0)
+        target = now.replace(hour=23, minute=50, second=0, microsecond=0)
 
         if now > target:
             target += timedelta(days=1)
@@ -463,6 +463,7 @@ server_on()
 
 # Run the bot
 bot.run(os.getenv('TOKEN'))
+
 
 
 
