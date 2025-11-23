@@ -119,7 +119,7 @@ async def writing_reminder_task():
     while not bot.is_closed():
         now = datetime.now(pytz.timezone("Asia/Tokyo"))
         # ตั้งเวลาเช็กทุกวันตอน 23:55 (ปรับได้)
-        target = now.replace(hour=00, minute=15, second=0, microsecond=0)
+        target = now.replace(hour=01, minute=00, second=0, microsecond=0)
 
         if now > target:
             target += timedelta(days=1)
@@ -136,6 +136,9 @@ async def writing_reminder_task():
 
         for key, user_id in WRITING_USERS.items():
             last_date = last_submit_date.get(user_id)
+
+            member = channel.guild.get_member(user_id) or await bot.fetch_user(user_id)
+            mention = member.mention if member else f"<@{user_id}>"
 
             # ยังไม่เคยมี record เลย → ถือว่าไม่ส่งวันนี้ แต่ยังไม่ด่าแรง ใช้ "ลืมส่งงานรึเปล่า"
             if last_date is None:
@@ -460,6 +463,7 @@ server_on()
 
 # Run the bot
 bot.run(os.getenv('TOKEN'))
+
 
 
 
