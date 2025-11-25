@@ -68,7 +68,7 @@ async def anniversary_task():
         await asyncio.sleep(wait_seconds)
 
         # เช็กเฉพาะวันที่ 26/11
-        if target.month == 11 and target.day == 26 and target.year >= ANNIV_START_YEAR:
+        if target.month == 11 and target.day == 27 and target.year >= ANNIV_START_YEAR:
             years = target.year - ANNIV_START_YEAR
             await channel.send(
                 f"Happy anniversary of the year we first met! It has been {years} years now ٩(ˊᗜˋ*)و ♡"
@@ -463,6 +463,7 @@ server_on()
 
 # Run the bot
 bot.run(os.getenv('TOKEN'))
+
 
 
 
