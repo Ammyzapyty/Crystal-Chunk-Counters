@@ -7,6 +7,9 @@ import asyncio
 from datetime import datetime, timedelta
 import random
 from myserver import server_on
+from deep_translator import GoogleTranslator
+from pykakasi import kakasi
+import re
 
 
 # Setup intents and bot
@@ -41,6 +44,28 @@ WRITING_USERS = {
 
 # เก็บวันที่ล่าสุดที่แต่ละคน "ส่งงานแล้ว" (ต่อวัน)
 last_submit_date = {}  # user_id -> datetime.date
+
+#แปลภาษา
+
+TR_CHANNEL_ID = 1312842359330963497  # 🔁 ใส่ Channel ID ปลายทางที่ให้บอทส่งข้อความ
+
+# --- kakasi สำหรับ romaji ---
+_kks = kakasi()
+_kks.setMode("J", "a")
+_kks.setMode("H", "a")
+_kks.setMode("K", "a")
+_kks.setMode("r", "Hepburn")
+_kks.setMode("s", True)
+_conv = _kks.getConverter()
+
+def to_romaji(text: str) -> str:
+    return _conv.do(text).title()
+
+def is_japanese(text: str) -> bool:
+    return bool(re.search(r"[\u3040-\u30ff\u4e00-\u9faf]", text))
+
+def is_thai(text: str) -> bool:
+    return bool(re.search(r"[\u0E00-\u0E7F]", text))
 
 
 
@@ -245,6 +270,11 @@ async def help(ctx):
         value="Enter the name of the world owner you mined with.\n➔ Example: `!summary name`",
         inline=False
     )
+    hembed.add_field(
+        name="📄 `!tr`",
+        value="Enter the word you want to translate.\n➔ Example: `!tr rain`",
+        inline=False
+    )
 
     hembed.set_thumbnail(url="https://media.tenor.com/kYVuwpAqbfUAAAAM/genshin-impact-furina.gif")
     hembed.set_image(url="https://upload-os-bbs.hoyolab.com/upload/2024/01/07/304153211/babd6d552ea0572ae90483188c4f6a7e_8170120446407218376.gif")
@@ -301,6 +331,42 @@ async def summary(ctx, name: str = None):
     start_time = None
     finish_time = None
 
+@bot.command()
+async def tr(ctx, *, text: str):
+    target_channel = bot.get_channel(TR_CHANNEL_ID)
+
+    if target_channel is None:
+        await ctx.send("⚠️ Translate channel not found.")
+        return
+
+    try:
+        # 1) แปลเป็นญี่ปุ่นก่อนเสมอ
+        jp = text if is_japanese(text) else GoogleTranslator(
+            source="auto", target="ja"
+        ).translate(text)
+
+        # 2) ญี่ปุ่น → อังกฤษ
+        en = GoogleTranslator(
+            source="ja", target="en"
+        ).translate(jp).lower()
+
+        # 3) โรมาจิ
+        romaji = to_romaji(jp)
+
+        # 4) ถ้าต้นฉบับเป็นไทย ใส่ไทยต่อท้าย
+        extra = f", {text}" if is_thai(text) and not is_japanese(text) else ""
+
+        result = f"{jp} ({romaji}) = {en}{extra}"
+
+        # ส่งไปช่องที่กำหนด
+        await target_channel.send(result)
+
+        # แจ้งคนที่ใช้คำสั่ง (ลบได้ถ้าไม่อยากให้เด้ง)
+        await ctx.send("📘 Translation sent!")
+
+    except Exception as e:
+        await ctx.send("❌ Translate failed")
+
 
 
 # /////////////////////////////////////////////////////////////////////////////////////////
@@ -354,6 +420,8 @@ async def on_message(message):
             ["Dude, why do you keep calling me WTH", "https://tenor.com/fdcKMmQ3URF.gif"],
             ["HAHAHAHA you so funny ...................I lie FAQ" , "https://tenor.com/jEOjEdt861v.gif"],
             ["OHHHH ok k k  I understand (Don't understand)" , "https://tenor.com/qaChJnWwI1F.gif"],
+            ["Hiiii,Do you miss me??I'm fineദ്ദി(｡•̀ ,<)~✩‧₊" , "https://tenor.com/en-GB/view/robin-robin-hsr-boy-slow-down-hsr-honkai-star-rail-gif-14230868558252524096"],
+            ["Hmm Lets me see..Σ(°ロ°) No Do not No Dont NOnononononoooo" , "https://tenor.com/en-GB/view/robin-hsr-honkai-star-rail-gif-3108716992720495010"],
             ["AHSDAHSHDJASJDKASKJDASHJA LET ME SLEEPPPPPP" , "https://tenor.com/npMvn9ISgjO.gif"]
         ]
         chosen = random.choice(responses)
@@ -461,6 +529,7 @@ server_on()
 
 # Run the bot
 bot.run(os.getenv('TOKEN'))
+
 
 
 
