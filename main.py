@@ -195,6 +195,9 @@ async def on_ready():
     asyncio.create_task(scheduled_task())      # อันเดิม (00:10)
     asyncio.create_task(anniversary_task())    # 🎉 อันใหม่ (00:48 เฉพาะ 26/11)
     asyncio.create_task(writing_reminder_task())
+    activity = discord.Activity(
+    type=discord.ActivityType.listening,
+    name="!help")
 
 
     #channel_id = 1329786018353778760 # 🔁 ใส่ Channel ID ที่ต้องการให้บอทส่งข้อความ
@@ -529,6 +532,7 @@ server_on()
 
 # Run the bot
 bot.run(os.getenv('TOKEN'))
+
 
 
 
