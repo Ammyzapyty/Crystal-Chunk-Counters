@@ -15,6 +15,7 @@ import re
 # Setup intents and bot
 intents = discord.Intents.default()
 intents.message_content = True
+intents.members = True
 bot = commands.Bot(command_prefix='!', intents=intents, help_command=None)
 
 # Global data storage
@@ -195,9 +196,6 @@ async def on_ready():
     asyncio.create_task(scheduled_task())      # อันเดิม (00:10)
     asyncio.create_task(anniversary_task())    # 🎉 อันใหม่ (00:48 เฉพาะ 26/11)
     asyncio.create_task(writing_reminder_task())
-    activity = discord.Activity(
-    type=discord.ActivityType.listening,
-    name="!help")
 
 
     #channel_id = 1329786018353778760 # 🔁 ใส่ Channel ID ที่ต้องการให้บอทส่งข้อความ
@@ -343,7 +341,7 @@ async def tr(ctx, *, text: str):
         return
 
     try:
-        # 1) แปลเป็นญี่ปุ่นก่อนเสมอ
+        # 1) แปลเป็นญี่ปุ่น (หลัก)
         jp = text if is_japanese(text) else GoogleTranslator(
             source="auto", target="ja"
         ).translate(text)
@@ -353,22 +351,29 @@ async def tr(ctx, *, text: str):
             source="ja", target="en"
         ).translate(jp).lower()
 
-        # 3) โรมาจิ
+        # 3) ญี่ปุ่น → ไทย (ความหมาย)
+        th = GoogleTranslator(
+            source="ja", target="th"
+        ).translate(jp)
+
+        # 4) โรมันจิ (ญี่ปุ่น)
         romaji = to_romaji(jp)
 
-        # 4) ถ้าต้นฉบับเป็นไทย ใส่ไทยต่อท้าย
-        extra = f", {text}" if is_thai(text) and not is_japanese(text) else ""
 
-        result = f"{jp} ({romaji}) = {en}{extra}"
+        # จัดรูปแบบผลลัพธ์
+        result = (
+            f"{jp} ({romaji})\n"
+            f"= {en}\n"
+            f"= {th}"
+        )
 
-        # ส่งไปช่องที่กำหนด
         await target_channel.send(result)
-
-        # แจ้งคนที่ใช้คำสั่ง (ลบได้ถ้าไม่อยากให้เด้ง)
         await ctx.send("📘 Translation sent!")
 
     except Exception as e:
         await ctx.send("❌ Translate failed")
+        print(e)
+
 
 
 
@@ -423,8 +428,8 @@ async def on_message(message):
             ["Dude, why do you keep calling me WTH", "https://tenor.com/fdcKMmQ3URF.gif"],
             ["HAHAHAHA you so funny ...................I lie FAQ" , "https://tenor.com/jEOjEdt861v.gif"],
             ["OHHHH ok k k  I understand (Don't understand)" , "https://tenor.com/qaChJnWwI1F.gif"],
-            ["Hiiii,Do you miss me??I'm fineദ്ദി(｡•̀ ,<)~✩‧₊" , "https://tenor.com/en-GB/view/robin-robin-hsr-boy-slow-down-hsr-honkai-star-rail-gif-14230868558252524096"],
-            ["Hmm Lets me see..Σ(°ロ°) No Do not No Dont NOnononononoooo" , "https://tenor.com/en-GB/view/robin-hsr-honkai-star-rail-gif-3108716992720495010"],
+            ["Hiiii,Do you miss me??I'm fineദ്ദി(｡•̀ ,<)~✩‧₊" , "https://media1.tenor.com/m/xX4zjivqwkAAAAAd/robin-robin-hsr.gif"],
+            ["Hmm Lets me see..Σ(°ロ°) No Do not No Dont NOnononononoooo" , "https://media1.tenor.com/m/KyRholpTYaIAAAAd/robin-hsr.gif"],
             ["AHSDAHSHDJASJDKASKJDASHJA LET ME SLEEPPPPPP" , "https://tenor.com/npMvn9ISgjO.gif"]
         ]
         chosen = random.choice(responses)
@@ -532,6 +537,7 @@ server_on()
 
 # Run the bot
 bot.run(os.getenv('TOKEN'))
+
 
 
 
