@@ -428,8 +428,8 @@ async def on_message(message):
             ["Dude, why do you keep calling me WTH", "https://tenor.com/fdcKMmQ3URF.gif"],
             ["HAHAHAHA you so funny ...................I lie FAQ" , "https://tenor.com/jEOjEdt861v.gif"],
             ["OHHHH ok k k  I understand (Don't understand)" , "https://tenor.com/qaChJnWwI1F.gif"],
-            ["Hiiii,Do you miss me??I'm fineദ്ദി(｡•̀ ,<)~✩‧₊" , "https://media1.tenor.com/m/xX4zjivqwkAAAAAd/robin-robin-hsr.gif"],
-            ["Hmm Lets me see..Σ(°ロ°) No Do not No Dont NOnononononoooo" , "https://media1.tenor.com/m/KyRholpTYaIAAAAd/robin-hsr.gif"],
+            ["Hiiii,Do you miss me??I'm fineദ്ദി(｡•̀ ,<)~✩‧₊" , "https://tenor.com/q7pGXxOtUzY.gif"],
+            ["Hmm Lets me see..Σ(°ロ°) No Do not No Dont NOnononononoooo" , "https://tenor.com/dRN7t8fa9JK.gif"],
             ["AHSDAHSHDJASJDKASKJDASHJA LET ME SLEEPPPPPP" , "https://tenor.com/npMvn9ISgjO.gif"]
         ]
         chosen = random.choice(responses)
@@ -533,10 +533,12 @@ async def on_message(message):
             fake_message.content = line.strip()
             await bot.process_commands(fake_message)
 
+
 server_on()
 
 # Run the bot
 bot.run(os.getenv('TOKEN'))
+
 
 
 
