@@ -60,7 +60,12 @@ _kks.setMode("s", True)
 _conv = _kks.getConverter()
 
 def to_romaji(text: str) -> str:
-    return _conv.do(text).title()
+    raw = _conv.do(text)
+
+    # ลบช่องว่างก่อนพยางค์สั้น เช่น Ru, Ta, Te ฯลฯ
+    fixed = re.sub(r'\b([A-Za-z]+)\s+([A-Za-z]{1,2})\b', r'\1\2', raw)
+
+    return fixed.title()
 
 def is_japanese(text: str) -> bool:
     return bool(re.search(r"[\u3040-\u30ff\u4e00-\u9faf]", text))
@@ -341,31 +346,55 @@ async def tr(ctx, *, text: str):
         return
 
     try:
-        # 1) แปลเป็นญี่ปุ่น (หลัก)
-        jp = text if is_japanese(text) else GoogleTranslator(
-            source="auto", target="ja"
-        ).translate(text)
+        original = text.strip()
 
-        # 2) ญี่ปุ่น → อังกฤษ
-        en = GoogleTranslator(
-            source="ja", target="en"
-        ).translate(jp).lower()
+        # ---------- ตรวจจับภาษา ----------
+        if is_japanese(original):
+            source_lang = "ja"
+        elif is_thai(original):
+            source_lang = "th"
+        else:
+            source_lang = "en"
 
-        # 3) ญี่ปุ่น → ไทย (ความหมาย)
-        th = GoogleTranslator(
-            source="ja", target="th"
-        ).translate(jp)
+        # ---------- แปล ----------
+        if source_lang == "ja":
+            jp = original
+            en = GoogleTranslator(source="ja", target="en").translate(jp).lower()
+            th = GoogleTranslator(source="ja", target="th").translate(jp)
 
-        # 4) โรมันจิ (ญี่ปุ่น)
-        romaji = to_romaji(jp)
+            romaji = to_romaji(jp)
 
+            result = (
+                f"{jp} ({romaji})\n"
+                f"= {en}\n"
+                f"= {th}"
+            )
 
-        # จัดรูปแบบผลลัพธ์
-        result = (
-            f"{jp} ({romaji})\n"
-            f"= {en}\n"
-            f"= {th}"
-        )
+        elif source_lang == "th":
+            th = original
+            en = GoogleTranslator(source="th", target="en").translate(th).lower()
+            jp = GoogleTranslator(source="th", target="ja").translate(th)
+
+            romaji = to_romaji(jp)
+
+            result = (
+                f"{th}\n"
+                f"= {en}\n"
+                f"= {jp} ({romaji})"
+            )
+
+        else:  # English
+            en = original.lower()
+            th = GoogleTranslator(source="en", target="th").translate(en)
+            jp = GoogleTranslator(source="en", target="ja").translate(en)
+
+            romaji = to_romaji(jp)
+
+            result = (
+                f"{en}\n"
+                f"= {th}\n"
+                f"= {jp} ({romaji})"
+            )
 
         await target_channel.send(result)
         await ctx.send("📘 Translation sent!")
@@ -532,7 +561,6 @@ async def on_message(message):
             fake_message = message
             fake_message.content = line.strip()
             await bot.process_commands(fake_message)
-
 
 server_on()
 
