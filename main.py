@@ -30,7 +30,7 @@ bot_brief = load_personality()
 
 # --- ตั้งค่า AI ค่าย Groq ---
 # 🔁 เอา API Key ที่ก๊อปมาเมื่อกี้ มาใส่ตรงนี้ได้เลย
-groq_client = AsyncGroq(api_key='AITOKEN')
+groq_client = AsyncGroq(api_key=os.getenv("AITOKEN"))
 
 # Setup intents and bot
 intents = discord.Intents.default()
@@ -643,4 +643,4 @@ async def on_message(message):
 server_on()
 
 # Run the bot
-bot.run('TOKEN')
+bot.run(os.getenv('TOKEN'))
