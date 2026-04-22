@@ -10,13 +10,34 @@ from myserver import server_on
 from deep_translator import GoogleTranslator
 from pykakasi import kakasi
 import re
+from groq import AsyncGroq
 
+# --- สร้างสมุดจดจำประวัติการคุย (Chat History) ---
+user_chat_sessions = {}
+
+# --- ส่วนโหลดนิสัยจากไฟล์ ---
+def load_personality():
+    try:
+        # เปิดไฟล์ด้วย encoding='utf-8' เพื่อให้อ่านภาษาไทยได้ถูกต้อง
+        with open('personality.txt', 'r', encoding='utf-8') as f:
+            return f.read()
+    except FileNotFoundError:
+        # ถ้าหาไฟล์ไม่เจอ ให้ใช้ค่าเริ่มต้นกันเหนียวไว้
+        return "คุณคือบอท Discord ชื่อ Crystie Chu Contente"
+
+# โหลดข้อมูลมาเก็บไว้ในตัวแปร
+bot_brief = load_personality()
+
+# --- ตั้งค่า AI ค่าย Groq ---
+# 🔁 เอา API Key ที่ก๊อปมาเมื่อกี้ มาใส่ตรงนี้ได้เลย
+groq_client = AsyncGroq(api_key='AITOKEN')
 
 # Setup intents and bot
 intents = discord.Intents.default()
 intents.message_content = True
 intents.members = True
 bot = commands.Bot(command_prefix='!', intents=intents, help_command=None)
+
 
 # Global data storage
 last_world = None
@@ -37,7 +58,8 @@ birthday_message = "🎉 Happy Birthday!!ヾ( ˃ᴗ˂ )◞ • *✰🎂🎈"
 
 # ช่องส่งงานเขียน
 WRITTING_CHANNEL_ID = 1361195575470719026  # 🔁 ใส่ Channel ID ของแชท writting
-
+AI_CHANNEL_ID = 1495678523770409030  # 🔁 ใส่ Channel ID ของแชทที่จะให้เป็นห้อง AI
+ERROR_CHANNEL_ID = 1380191523160985600
 # 3 คนที่ต้องส่งงานทุกวัน (ใช้เป็น user id จริง)
 WRITING_USERS = {
     "Yuki": 1249685648789606462,  # แทน y
@@ -186,9 +208,7 @@ async def writing_reminder_task():
                 # ขาด 2 วันขึ้นไป → เมนชั่น + บอกจำนวนวัน
                 member = channel.guild.get_member(user_id) or await bot.fetch_user(user_id)
                 mention = member.mention if member else f"<@{user_id}>"
-                await channel.send(f"{mention} ou haven't submitted your work for {days} days! Be careful and watch out! Don't you dare forget ! ( ◺˰◿ )")
-
-
+                await channel.send(f"{mention} you haven't submitted your work for {days} days! Be careful and watch out! Don't you dare forget ! ( ◺˰◿ )")
 
 
 # /////////////////////////////////////////////////////////////////////////////////////////
@@ -429,6 +449,64 @@ async def on_message(message):
         return
     # ------------------------------------------------------------------------------
 
+    if message.channel.id == AI_CHANNEL_ID:
+        # ตัดแท็กชื่อบอทออก
+        user_message = message.content.replace(f'<@{bot.user.id}>', '').strip()
+
+        if user_message:
+            author_id = message.author.id
+
+            # เช็กว่ามีประวัติหรือยัง ถ้ายังให้สร้างประวัติพร้อมยัดบรีฟนิสัย (system) ไว้เป็นข้อความแรก
+            if author_id not in user_chat_sessions:
+                user_chat_sessions[author_id] = [
+                    {"role": "system", "content": bot_brief}
+                ]
+
+            # 1. เอาข้อความที่คนพิมพ์มาใส่ในประวัติการคุย
+            user_chat_sessions[author_id].append({"role": "user", "content": user_message})
+
+            async with message.channel.typing():
+                try:
+                    # 2. ส่งประวัติทั้งหมดไปให้ Groq (โมเดล Llama 3.3 ตัวท็อป) คิดคำตอบ
+                    completion = await groq_client.chat.completions.create(
+                        model="llama-3.3-70b-versatile", # รุ่นนี้เก่งและเร็วมาก
+                        messages=user_chat_sessions[author_id],
+                        temperature=0.8,
+                        max_tokens=1024
+                    )
+                    answer = completion.choices[0].message.content
+                    
+                    # 3. เอาคำตอบของบอทเก็บลงประวัติด้วย มันจะได้จำได้
+                    user_chat_sessions[author_id].append({"role": "assistant", "content": answer})
+                    
+                    # 4. ล้างความจำถ้ายาวเกินไป (เก็บระบบ 1 + คุย 20) กันโควต้าล้น
+                    if len(user_chat_sessions[author_id]) > 21:
+                        user_chat_sessions[author_id] = [user_chat_sessions[author_id][0]] + user_chat_sessions[author_id][-20:]
+
+                    # 5. ส่งข้อความกลับไปในดิสคอร์ด
+                    if len(answer) > 2000:
+                        for chunk in [answer[i:i+2000] for i in range(0, len(answer), 2000)]:
+                            await message.reply(chunk)
+                    else:
+                        await message.reply(answer)
+
+                except Exception as e:
+                    # ฟ้อง Error แบบเดิมที่ห้อง Error ของเรา
+                    print(f"\n🚨 [AI ERROR ALERT] 🚨\nพังเพราะ: {e}\n")
+                    await message.reply("Error Botto Waikanna aaa(ㆆ_ㆆ)????")
+                    
+                    try:
+                        error_channel = await bot.fetch_channel(ERROR_CHANNEL_ID)
+                        error_text = (
+                            f"⚠️ **[AI ERROR Alert]** ⚠️\n"
+                            f"**คนพิมพ์:** {message.author.mention}\n"
+                            f"**ข้อความที่พิมพ์:** {user_message}\n"
+                            f"**สาเหตุ:** `{e}`"
+                        )
+                        await error_channel.send(error_text)
+                    except Exception as fetch_err:
+                        print(f"❌ โยนไปห้อง Error ไม่สำเร็จ: {fetch_err}")
+        return
         # 🔻🔻🔻 ส่วนใหม่: เช็กการส่งงานในแชท writting 🔻🔻🔻
     if message.channel.id == WRITTING_CHANNEL_ID and message.author.id in WRITING_USERS.values():
         # เช็กว่ามีรูปไหม
@@ -565,18 +643,4 @@ async def on_message(message):
 server_on()
 
 # Run the bot
-bot.run(os.getenv('TOKEN'))
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+bot.run('TOKEN')
