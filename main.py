@@ -29,7 +29,7 @@ def load_personality():
 bot_brief = load_personality()
 
 # --- ตั้งค่า AI ค่าย Groq ---
-# 🔁 เอา API Key ที่ก๊อปมาเมื่อกี้ มาใส่ตรงนี้ได้เลย
+# :repeat: เอา API Key ที่ก๊อปมาเมื่อกี้ มาใส่ตรงนี้ได้เลย
 groq_client = AsyncGroq(api_key=os.getenv("AITOKEN"))
 
 # Setup intents and bot
@@ -45,7 +45,7 @@ start_data = {}
 start_time = None
 finish_time = None
 special_mentions = {
-    "21/02": 1267811966769041451, # tori
+#    "21/02": 1267811966769041451, # tori
     "01/03": 1249685648789606462, # yuki
     "19/03": 1007576032762658888,  # Nutcha
     "23/03": 759408411132952587, #Ammy
@@ -58,7 +58,7 @@ birthday_message = "🎉 Happy Birthday!!ヾ( ˃ᴗ˂ )◞ • *✰🎂🎈"
 
 # ช่องส่งงานเขียน
 WRITTING_CHANNEL_ID = 1361195575470719026  # 🔁 ใส่ Channel ID ของแชท writting
-AI_CHANNEL_ID = 1495678523770409030  # 🔁 ใส่ Channel ID ของแชทที่จะให้เป็นห้อง AI
+AI_CHANNEL_ID = 1380191523160985600  # 🔁 ใส่ Channel ID ของแชทที่จะให้เป็นห้อง AI
 ERROR_CHANNEL_ID = 1380191523160985600
 # 3 คนที่ต้องส่งงานทุกวัน (ใช้เป็น user id จริง)
 WRITING_USERS = {
@@ -474,21 +474,58 @@ async def on_message(message):
                         temperature=0.8,
                         max_tokens=1024
                     )
-                    answer = completion.choices[0].message.content
-                    
-                    # 3. เอาคำตอบของบอทเก็บลงประวัติด้วย มันจะได้จำได้
-                    user_chat_sessions[author_id].append({"role": "assistant", "content": answer})
-                    
-                    # 4. ล้างความจำถ้ายาวเกินไป (เก็บระบบ 1 + คุย 20) กันโควต้าล้น
-                    if len(user_chat_sessions[author_id]) > 21:
-                        user_chat_sessions[author_id] = [user_chat_sessions[author_id][0]] + user_chat_sessions[author_id][-20:]
+                    answer = completion.choices[0].message.content.strip()
 
-                    # 5. ส่งข้อความกลับไปในดิสคอร์ด
-                    if len(answer) > 2000:
-                        for chunk in [answer[i:i+2000] for i in range(0, len(answer), 2000)]:
-                            await message.reply(chunk)
-                    else:
-                        await message.reply(answer)
+                    # 3. เอาคำตอบของบอทเก็บลงประวัติด้วย
+                    user_chat_sessions[author_id].append({
+                        "role": "assistant",
+                        "content": answer
+                    })
+
+                    # 4. ล้างความจำถ้ายาวเกินไป
+                    if len(user_chat_sessions[author_id]) > 21:
+                        user_chat_sessions[author_id] = (
+                            [user_chat_sessions[author_id][0]]
+                            + user_chat_sessions[author_id][-20:]
+                        )
+
+                    # ==================================================
+                    # แยก GIF ออกจากข้อความ
+                    # ==================================================
+
+                    gif_match = re.search( r"(https?://\S+\.gif)", answer )
+
+                    gif_url = None
+
+                    if gif_match:
+                        gif_url = gif_match.group(1)
+
+                        # ลบ gif ออกจากข้อความหลัก
+                        answer = re.sub( r"https?://\S+\.gif(\?\S+)?", "", answer ).strip()
+
+                    # ==================================================
+                    # ส่งข้อความหลัก
+                    # ==================================================
+
+                    if answer:
+                        if len(answer) > 2000:
+                            chunks = [
+                                answer[i:i+2000]
+                                for i in range(0, len(answer), 2000)
+                            ]
+
+                            for chunk in chunks:
+                                await message.reply(chunk)
+
+                        else:
+                            await message.reply(answer)
+
+                    # ==================================================
+                    # ส่ง GIF แยกข้อความ
+                    # ==================================================
+
+                    if gif_url:
+                        await message.channel.send(gif_url)
 
                 except Exception as e:
                     # ฟ้อง Error แบบเดิมที่ห้อง Error ของเรา
@@ -537,7 +574,8 @@ async def on_message(message):
             ["OHHHH ok k k  I understand (Don't understand)" , "https://tenor.com/qaChJnWwI1F.gif"],
             ["Hiiii,Do you miss me??I'm fineദ്ദി(｡•̀ ,<)~✩‧₊" , "https://tenor.com/q7pGXxOtUzY.gif"],
             ["Hmm Lets me see..Σ(°ロ°) No Do not No Dont NOnononononoooo" , "https://tenor.com/dRN7t8fa9JK.gif"],
-            ["AHSDAHSHDJASJDKASKJDASHJA LET ME SLEEPPPPPP" , "https://tenor.com/npMvn9ISgjO.gif"]
+            ["AHSDAHSHDJASJDKASKJDASHJA LET ME SLEEPPPPPP" , "https://tenor.com/npMvn9ISgjO.gif"],
+            ["AHHHHHHHHHH WHAT THE FUCKKK!!!" , "https://tenor.com/b43eDa2LiOw.gif"]
         ]
         chosen = random.choice(responses)
         for line in chosen:
@@ -553,7 +591,7 @@ async def on_message(message):
             return
 
     # ✅ ตอบ xxxx ถ้ามีคำว่า zzzzz หรือคำใกล้เคียง
-    if any(keyword in content for keyword in ["good night", "おやすみ", "gn", "oyasumi", 'นอน', 'nemui', 'sleep', '眠い', 'ねむい']):
+    if any(keyword in content for keyword in ["good night", "おやすみ", "gn", "oyasumi", 'nemui', 'sleep', '眠い', 'ねむい']):
         if not message.content.startswith('!'):
             await message.channel.send(random.choice([f"sweet dreams~ 😴😴 {message.author.mention}"
                                                     ,"Good night (⸝⸝ᴗ﹏ᴗ⸝⸝) ᶻ 𝗓 𐰁"
@@ -591,20 +629,20 @@ async def on_message(message):
                                                     f"Who noob !?!?!( ˶°ㅁ°) !!"]))
         return
 
-    if any(keyword in content for keyword in ["are you all ,all right ?",'are u all right','are you all all right']):
+    if any(keyword in content for keyword in ["are you all ,all right ?",'are u all right','are you all all right','are you all right']):
         if not message.content.startswith('!'):
             await message.channel.send(f"No!! We are ALL ,ALL LEFT ദ്ദി(ᵔᗜᵔ)")
         return
     
-    if any(keyword in content for keyword in ["today whos world","today who's world",'today who world']):
+    if any(keyword in content for keyword in ["today whos world","today who's world",'who world']):
         if not message.content.startswith('!'):
             if last_world:
                 await message.channel.send(f"🌍 Last time, it was {last_world} ✨")
             else:
-                await message.channel.send("🤔 I don't know yet... maybe Havuika's world?? Σ(°△°   )")
+                await message.channel.send("🤔 I don't know yet... maybe Tori's world?? Σ(°△°   )")
         return
 
-    if any(keyword in content for keyword in ["ekae"]):
+    if any(keyword in content for keyword in ["ekae", "Ekae", "อีแก่"]):
         if not message.content.startswith('!'):
             user_ids = [1172547640840429690, #julia 1
                         663541892201578507, #julia 2
@@ -629,6 +667,30 @@ async def on_message(message):
         if not message.content.startswith('!'):
             await message.channel.send("HUH!?!?!?This you just mock me!?!?!?! <(ꐦㅍ _ㅍ)>")
             await message.channel.send("https://tenor.com/o0WqN4GKaoN.gif")
+        return
+
+    if any(keyword in content for keyword in ["isolation", "gugugaga"]):
+        if not message.content.startswith('!'):
+            await message.channel.send(random.choice(["ISOLATION!!!!","GUGUGAGA!!!!!"]))
+            await message.channel.send("https://tenor.com/hJwS8F0to7n.gif")
+        return
+
+    if any(keyword in content for keyword in ["haha", "hoho"]):
+        if not message.content.startswith('!'):
+            await message.channel.send("Ohohohoho!")
+            await message.channel.send("https://media.discordapp.net/attachments/1380191523160985600/1503693936454275172/NicoleOhohohoho-Trim-ezgif.com-resize.gif?ex=6a04479b&is=6a02f61b&hm=d417bbdfdd629860d9c7e966ecf0173ab69526966c97f35ee75fbd4f9d8bcafe&=&width=550&height=309")
+        return
+
+    if any(keyword in content for keyword in ["columbina"]):
+        if not message.content.startswith('!'):
+            await message.channel.send(random.choice([f"COLUMBINAAA!!!!"]))
+            await message.channel.send("https://tenor.com/c9ulmWBE9PO.gif")
+        return
+
+    if any(keyword in content for keyword in ["หูย"]):
+        if not message.content.startswith('!'):
+            await message.channel.send("โห")
+            await message.channel.send(random.choice([f"https://tenor.com/e4gBntNzp53.gif", "https://tenor.com/qxfxRfKQ5Vs.gif"]))
         return
 
     # ✅ รองรับหลายคำสั่งในข้อความเดียว
