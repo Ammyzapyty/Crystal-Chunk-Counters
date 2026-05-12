@@ -58,7 +58,7 @@ birthday_message = "🎉 Happy Birthday!!ヾ( ˃ᴗ˂ )◞ • *✰🎂🎈"
 
 # ช่องส่งงานเขียน
 WRITTING_CHANNEL_ID = 1361195575470719026  # 🔁 ใส่ Channel ID ของแชท writting
-AI_CHANNEL_ID = 1380191523160985600  # 🔁 ใส่ Channel ID ของแชทที่จะให้เป็นห้อง AI
+AI_CHANNEL_ID = 1495678523770409030  # 🔁 ใส่ Channel ID ของแชทที่จะให้เป็นห้อง AI
 ERROR_CHANNEL_ID = 1380191523160985600
 # 3 คนที่ต้องส่งงานทุกวัน (ใช้เป็น user id จริง)
 WRITING_USERS = {
