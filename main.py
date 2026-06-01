@@ -29,13 +29,14 @@ def load_personality():
 bot_brief = load_personality()
 
 # --- ตั้งค่า AI ค่าย Groq ---
-# :repeat: เอา API Key ที่ก๊อปมาเมื่อกี้ มาใส่ตรงนี้ได้เลย
+# 🔁 เอา API Key ที่ก๊อปมาเมื่อกี้ มาใส่ตรงนี้ได้เลย
 groq_client = AsyncGroq(api_key=os.getenv("AITOKEN"))
 
 # Setup intents and bot
 intents = discord.Intents.default()
 intents.message_content = True
 intents.members = True
+intents.voice_states = True
 bot = commands.Bot(command_prefix='!', intents=intents, help_command=None)
 
 
@@ -56,13 +57,22 @@ special_mentions = {
 
 birthday_message = "🎉 Happy Birthday!!ヾ( ˃ᴗ˂ )◞ • *✰🎂🎈"
 
+# ==========================================
+# Voice Chat Stretch Reminder
+# ==========================================
+
+vc_start_time = None
+
+VOICE_REMINDER_CHANNEL_ID = 1312781504400588884  # ห้องที่ให้ส่งข้อความเตือน
+
 # ช่องส่งงานเขียน
 WRITTING_CHANNEL_ID = 1361195575470719026  # 🔁 ใส่ Channel ID ของแชท writting
-AI_CHANNEL_ID = 1495678523770409030  # 🔁 ใส่ Channel ID ของแชทที่จะให้เป็นห้อง AI
+AI_CHANNEL_ID = 1380191523160985600  # 🔁 ใส่ Channel ID ของแชทที่จะให้เป็นห้อง AI
 ERROR_CHANNEL_ID = 1380191523160985600
 # 3 คนที่ต้องส่งงานทุกวัน (ใช้เป็น user id จริง)
 WRITING_USERS = {
-    "Yuki": 1249685648789606462,  # แทน y
+    "Yuki": 1249685648789606462,
+    "Ammy" : 759408411132952587  # แทน y
 }
 
 # เก็บวันที่ล่าสุดที่แต่ละคน "ส่งงานแล้ว" (ต่อวัน)
@@ -95,7 +105,20 @@ def is_japanese(text: str) -> bool:
 def is_thai(text: str) -> bool:
     return bool(re.search(r"[\u0E00-\u0E7F]", text))
 
+def has_people_in_voice(guild):
 
+    for voice_channel in guild.voice_channels:
+
+        members = [
+            member
+            for member in voice_channel.members
+            if not member.bot
+        ]
+
+        if members:
+            return True
+
+    return False
 
 # /////////////////////////////////////////////////////////////////////////////////////////
 # ส่งทุกวันเวลา เที่ยงคืน 10นาที ญี่ปุ่น
@@ -210,9 +233,123 @@ async def writing_reminder_task():
                 mention = member.mention if member else f"<@{user_id}>"
                 await channel.send(f"{mention} you haven't submitted your work for {days} days! Be careful and watch out! Don't you dare forget ! ( ◺˰◿ )")
 
+async def duolingo_reminder_task():
+    await bot.wait_until_ready()
+
+    channel_id = 1312781504400588883  # เปลี่ยนเป็นห้องที่ต้องการ
+    channel = bot.get_channel(channel_id)
+
+    while not bot.is_closed():
+
+        now = datetime.now(
+            pytz.timezone("Asia/Bangkok")
+        )
+
+        target = now.replace(
+            hour=23,
+            minute=50,
+            second=0,
+            microsecond=0
+        )
+
+        if now > target:
+            target += timedelta(days=1)
+
+        wait_seconds = (
+            target - now
+        ).total_seconds()
+
+        await asyncio.sleep(wait_seconds)
+
+        if channel:
+
+            await channel.send(
+                "🦉 Duolingo Time!!\n"
+                "Don't forget to do your lesson before the streak disappears! 🔥"
+            )
+
+
+async def voice_stretch_task():
+
+    global vc_start_time
+
+    await bot.wait_until_ready()
+
+    last_sent_hour = 0
+
+    while not bot.is_closed():
+
+        try:
+
+            if vc_start_time is not None:
+
+                now = datetime.now(
+                    pytz.timezone("Asia/Tokyo")
+                )
+
+                hours_passed = int(
+                    (now - vc_start_time).total_seconds()
+                    // 3600
+                )
+
+                if (
+                    hours_passed >= 1
+                    and hours_passed > last_sent_hour
+                ):
+
+                    last_sent_hour = hours_passed
+
+                    channel = bot.get_channel(
+                        VOICE_REMINDER_CHANNEL_ID
+                    )
+
+                    if channel:
+
+                        await channel.send(
+                            f"Please stand up, stretch your body, "
+                            f"drink some water and rest your eyes! ✨"
+                        )
+
+            else:
+                last_sent_hour = 0
+
+        except Exception as e:
+            print(f"[VC Reminder Error] {e}")
+
+        await asyncio.sleep(60)
 
 # /////////////////////////////////////////////////////////////////////////////////////////
 # แจ้งเตือนบอทออนไลน์ terminal
+
+@bot.event
+async def on_voice_state_update(member, before, after):
+
+    global vc_start_time
+
+    if member.bot:
+        return
+
+    guild = member.guild
+
+    people_exist = has_people_in_voice(guild)
+
+    now = datetime.now(pytz.timezone("Asia/Tokyo"))
+
+    if people_exist and vc_start_time is None:
+
+        vc_start_time = now
+
+        print(
+            f"[VC] Started counting at "
+            f"{vc_start_time.strftime('%Y-%m-%d %H:%M:%S')}"
+        )
+
+    elif not people_exist:
+
+        vc_start_time = None
+
+        print("[VC] No one in voice channel. Reset timer.")
+
 
 @bot.event
 async def on_ready():
@@ -221,8 +358,8 @@ async def on_ready():
     asyncio.create_task(scheduled_task())      # อันเดิม (00:10)
     asyncio.create_task(anniversary_task())    # 🎉 อันใหม่ (00:48 เฉพาะ 26/11)
     asyncio.create_task(writing_reminder_task())
-
-
+    asyncio.create_task(voice_stretch_task())
+    asyncio.create_task(duolingo_reminder_task())
     #channel_id = 1329786018353778760 # 🔁 ใส่ Channel ID ที่ต้องการให้บอทส่งข้อความ
     #channel = bot.get_channel(channel_id)
     #if channel:
@@ -678,7 +815,7 @@ async def on_message(message):
     if any(keyword in content for keyword in ["haha", "hoho"]):
         if not message.content.startswith('!'):
             await message.channel.send("Ohohohoho!")
-            await message.channel.send("https://media.discordapp.net/attachments/1380191523160985600/1503693936454275172/NicoleOhohohoho-Trim-ezgif.com-resize.gif?ex=6a04479b&is=6a02f61b&hm=d417bbdfdd629860d9c7e966ecf0173ab69526966c97f35ee75fbd4f9d8bcafe&=&width=550&height=309")
+            await message.channel.send("")
         return
 
     if any(keyword in content for keyword in ["columbina"]):
@@ -701,6 +838,7 @@ async def on_message(message):
             fake_message = message
             fake_message.content = line.strip()
             await bot.process_commands(fake_message)
+
 
 server_on()
 
