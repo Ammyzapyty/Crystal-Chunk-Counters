@@ -815,7 +815,7 @@ async def on_message(message):
     if any(keyword in content for keyword in ["haha", "hoho"]):
         if not message.content.startswith('!'):
             await message.channel.send("Ohohohoho!")
-            await message.channel.send("")
+            await message.channel.send("https://tenor.com/erKG7PYj4Hh.gif")
         return
 
     if any(keyword in content for keyword in ["columbina"]):
